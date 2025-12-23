@@ -1,40 +1,78 @@
-# ToDo Minimalista
+﻿# ToDo Minimalista
 
-Aplicación de tareas en React + Vite con interfaz oscura y enfoque minimalista. Guarda todo en `localStorage`, permite filtrar, buscar, priorizar, reordenar por drag & drop y exportar/importar en JSON.
+Aplicacion de tareas en React + Vite con interfaz oscura y foco en simplicidad. Todas las tareas se guardan en `localStorage`; incluye filtros, busqueda, prioridades, drag & drop y exportar/importar en JSON.
 
-## Características
-- Crear, completar, editar (doble click) y eliminar tareas.
-- Prioridades Alta/Media/Baja con indicador de color.
-- Filtros (todas, pendientes, completadas) y búsqueda por texto.
-- Reordenar tareas visibles arrastrando y soltando.
-- Exportar a `todos.json` e importar desde un JSON compatible.
-- Limpieza rápida de completadas y contador de pendientes/total.
-- Guardado automático en `localStorage` sin backend.
+## Caracteristicas clave
+- CRUD completo: crear, completar, editar (doble click) y eliminar.
+- Prioridades Alta/Media/Baja con indicador de color y cambio in-line.
+- Filtros por estado (todas, pendientes, completadas) y busqueda textual.
+- Reordenamiento por drag & drop de la lista visible.
+- Exportar a `todos.json` e importar desde JSON compatible.
+- Limpieza rapida de completadas y contador de pendientes/total.
+- Persistencia local: sin backend, todo vive en el navegador.
+
+## Stack
+- React 19 + Vite.
+- CSS plano (sin dependencias de UI).
+- ESLint para estandarizar el codigo.
 
 ## Requisitos
 - Node.js >= 18 y npm.
 
-## Puesta en marcha
-Desde la raíz del repo:
+## Instalacion y ejecucion
+En la raiz del proyecto:
 ```bash
-cd todo-minimalista
 npm install      # primera vez
-npm run dev      # http://localhost:5173
+npm run dev      # abre en http://localhost:5173
 ```
 
-Scripts útiles:
-- `npm run build`: genera la versión de producción en `dist/`.
-- `npm run preview`: sirve el build para verificación local.
-- `npm run lint`: ejecuta ESLint.
+## Scripts
+- `npm run dev`: modo desarrollo con HMR.
+- `npm run build`: genera artefactos de produccion en `dist/`.
+- `npm run preview`: sirve el build para verificacion local.
+- `npm run lint`: corre ESLint.
 
-## Uso rápido
-- Escribe la tarea y elige prioridad, luego "Agregar".
-- Usa las chips para filtrar y el buscador para localizar por texto.
+## Estructura breve
+- `src/App.jsx`: logica principal de la app y gestion de estado.
+- `src/styles.css`: estilos globales y componentes de UI.
+- `public/`, `index.html`, `main.jsx`: bootstrap de Vite/React.
+
+## Uso rapido
+- Escribe la tarea, elige prioridad y haz click en "Agregar".
+- Usa las chips de filtro y el buscador para acotar resultados.
 - Marca el checkbox para completar; doble click en el texto para editar.
-- Cambia la prioridad desde el select de cada ítem.
-- Arrastra una tarea para reordenar la lista visible.
-- Exporta/Importa con los botones superiores; "Limpiar completadas" elimina las ya terminadas.
+- Ajusta la prioridad desde el select de cada item.
+- Arrastra tareas para reordenar; exporta/importa con los botones superiores; "Limpiar completadas" borra las ya terminadas.
 
-## Notas de datos
-- Toda la información se guarda en el navegador; limpiar el almacenamiento local del sitio borra las tareas.
-- El archivo JSON exportado es el que puede volver a importarse (estructura compatible con `src/App.jsx`).
+## Roadmap (en curso)
+### Accesibilidad (A11y)
+- Navegacion completa por teclado (Tab, Enter, Escape) con estados claros usando :focus-visible.
+- Ajuste de contraste para cumplir WCAG AA.
+- Etiquetado semantico y `aria-label` descriptivos en controles.
+
+### Microinteracciones y animaciones
+- Fade + slide en entrada/salida de tareas.
+- Transicion visual al marcar una tarea como completada.
+- Feedback mas claro en hover/acciones primarias; evaluar framer-motion para mas control.
+
+### Experiencia de usuario y producto
+- "Undo" al eliminar tareas con snackbar temporal.
+- Orden automatico configurable (prioridad/estado/fecha) compatible con drag & drop manual.
+- Mensajes y vacios guiados para mejorar descubribilidad.
+
+### Estadisticas y visualizacion
+- Porcentaje de tareas completadas y contador por prioridad.
+- Metricas simples de productividad diaria.
+
+### Organizacion y escalabilidad
+- Tags/categorias personalizables con colores asignables.
+- Refactor de estado a custom hooks (`useTodos`, `useLocalStorage`).
+
+### Persistencia y mantenimiento
+- Versionado del schema en `localStorage` con migraciones automaticas.
+- Compatibilidad entre versiones exportadas de JSON.
+
+### Mejoras avanzadas
+- PWA con soporte offline.
+- Internacionalizacion (i18n) con cambio de idioma en tiempo real.
+- Tests basicos de logica y estado.
