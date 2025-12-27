@@ -129,8 +129,13 @@ export default function App() {
               Limpiar completadas
             </button>
 
-            <button className="btn btn-ghost theme-toggle" onClick={toggleTheme} title="Cambiar tema">
-              {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+            <button
+              className="btn icon-btn theme-toggle"
+              onClick={toggleTheme}
+              title="Cambiar tema"
+              aria-label="Cambiar tema"
+            >
+              {theme === "dark" ? "☀" : "☾"}
             </button>
           </div>
         </header>
@@ -390,56 +395,60 @@ function TagManager({ tags, onCreate, onUpdate, onDelete }) {
   }
 
   return (
-    <div className="tag-manager">
-      <div className="tag-manager-head">
-        <h3>Tags</h3>
-        <p>Crea categorias y asigna un color.</p>
-      </div>
+    <details className="tag-panel">
+      <summary className="tag-summary">
+        <div>
+          <span className="tag-summary-title">Tags y categorias</span>
+          <span className="tag-summary-sub">Organiza tareas con colores discretos</span>
+        </div>
+        <span className="tag-summary-count">{tags.length} activos</span>
+      </summary>
+      <div className="tag-manager">
+        <form className="tag-form" onSubmit={submit}>
+          <input
+            className="input"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Nombre del tag"
+            aria-label="Nombre del tag"
+          />
+          <input
+            className="color"
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+            aria-label="Color del tag"
+          />
+          <button className="btn btn-primary" type="submit">
+            Agregar tag
+          </button>
+        </form>
 
-      <form className="tag-form" onSubmit={submit}>
-        <input
-          className="input"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          placeholder="Nombre del tag"
-          aria-label="Nombre del tag"
-        />
-        <input
-          className="color"
-          type="color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-          aria-label="Color del tag"
-        />
-        <button className="btn btn-primary" type="submit">
-          Agregar tag
-        </button>
-      </form>
-
-      <div className="tag-list">
-        {tags.map((tag) => (
-          <div key={tag.id} className="tag-row">
-            <TagBadge tag={tag} />
-            <input
-              className="tag-name"
-              value={tag.label}
-              onChange={(e) => onUpdate(tag.id, { label: e.target.value })}
-              aria-label={`Renombrar tag ${tag.label}`}
-            />
-            <input
-              className="color"
-              type="color"
-              value={tag.color}
-              onChange={(e) => onUpdate(tag.id, { color: e.target.value })}
-              aria-label={`Color de ${tag.label}`}
-            />
-            <button className="icon danger" type="button" onClick={() => onDelete(tag.id)} aria-label="Eliminar tag">
-              X
-            </button>
-          </div>
-        ))}
-        {tags.length === 0 && <p className="tag-placeholder">Aun no tienes tags creados.</p>}
+        <div className="tag-list">
+          {tags.map((tag) => (
+            <div key={tag.id} className="tag-row">
+              <TagBadge tag={tag} />
+              <input
+                className="tag-name"
+                value={tag.label}
+                onChange={(e) => onUpdate(tag.id, { label: e.target.value })}
+                aria-label={`Renombrar tag ${tag.label}`}
+              />
+              <input
+                className="color"
+                type="color"
+                value={tag.color}
+                onChange={(e) => onUpdate(tag.id, { color: e.target.value })}
+                aria-label={`Color de ${tag.label}`}
+              />
+              <button className="icon danger" type="button" onClick={() => onDelete(tag.id)} aria-label="Eliminar tag">
+                X
+              </button>
+            </div>
+          ))}
+          {tags.length === 0 && <p className="tag-placeholder">Aun no tienes tags creados.</p>}
+        </div>
       </div>
-    </div>
+    </details>
   );
 }
