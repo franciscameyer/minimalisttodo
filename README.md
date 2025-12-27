@@ -65,8 +65,6 @@ npm run dev      # abre en http://localhost:5173
 - Metricas simples de productividad diaria.
 
 ### Organizacion y escalabilidad
-- Tags/categorias personalizables con colores asignables.
-- Refactor de estado a custom hooks (`useTodos`, `useLocalStorage`).
 
 ### Persistencia y mantenimiento
 - Versionado del schema en `localStorage` con migraciones automaticas.

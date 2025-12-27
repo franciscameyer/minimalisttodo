@@ -1,35 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocalStorage } from "./hooks/useLocalStorage";
+import { useTodos } from "./hooks/useTodos";
 
-const STORAGE_KEY = "todo_minimalista_v1";
 const THEME_KEY = "todo_minimalista_theme_v1";
-
-function uid() {
-  return crypto?.randomUUID?.() ?? String(Date.now() + Math.random());
-}
-
-function loadTodos() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveTodos(todos) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-}
-
-function loadTheme() {
-  if (typeof window === "undefined") return "dark";
-
-  const saved = localStorage.getItem(THEME_KEY);
-  if (saved === "light" || saved === "dark") return saved;
-
-  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
-}
 
 const PRIORITIES = [
   { value: "high", label: "Alta", dot: "dot-high" },
@@ -38,34 +11,37 @@ const PRIORITIES = [
 ];
 
 export default function App() {
-  const [todos, setTodos] = useState(() => loadTodos());
-  const [theme, setTheme] = useState(() => {
-    const initial = loadTheme();
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", initial);
-    }
-    return initial;
-  });
-  const [filter, setFilter] = useState("all"); // all | active | completed
-  const [query, setQuery] = useState("");
+  const {
+    todos,
+    tags,
+    stats,
+    addTodo,
+    toggleTodo,
+    removeTodo,
+    editTodo,
+    setPriority,
+    setTagsForTodo,
+    clearCompleted,
+    reorderTodos,
+    replaceData,
+    exportData,
+    createTag,
+    updateTag,
+    deleteTag,
+  } = useTodos();
 
-  // DnD
+  const [filter, setFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const [theme, setTheme] = useLocalStorage(THEME_KEY, () => {
+    if (typeof window === "undefined") return "dark";
+    return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  });
+
   const dragIdRef = useRef(null);
 
   useEffect(() => {
-    saveTodos(todos);
-  }, [todos]);
-  useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
-
-  const stats = useMemo(() => {
-    const total = todos.length;
-    const completed = todos.filter((t) => t.completed).length;
-    const active = total - completed;
-    return { total, active, completed };
-  }, [todos]);
 
   const visibleTodos = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -81,64 +57,10 @@ export default function App() {
       });
   }, [todos, filter, query]);
 
-  function addTodo(text, priority) {
-    const clean = text.trim();
-    if (!clean) return;
-
-    const now = Date.now();
-    const next = [
-      {
-        id: uid(),
-        text: clean,
-        completed: false,
-        priority,
-        createdAt: now,
-        updatedAt: now,
-      },
-      ...todos,
-    ];
-    setTodos(next);
-  }
-
-  function toggleTodo(id) {
-    setTodos((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed, updatedAt: Date.now() } : t
-      )
-    );
-  }
-
-  function removeTodo(id) {
-    setTodos((prev) => prev.filter((t) => t.id !== id));
-  }
-
-  function editTodo(id, nextText) {
-    const clean = nextText.trim();
-    if (!clean) return;
-    setTodos((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, text: clean, updatedAt: Date.now() } : t
-      )
-    );
-  }
-
-  function setPriority(id, priority) {
-    setTodos((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, priority, updatedAt: Date.now() } : t
-      )
-    );
-  }
-
-  function clearCompleted() {
-    setTodos((prev) => prev.filter((t) => !t.completed));
-  }
-
   function toggleTheme() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   }
 
-  // Drag & Drop: reordenar dentro de la lista visible, respetando el orden global
   function onDragStart(id) {
     dragIdRef.current = id;
   }
@@ -147,21 +69,12 @@ export default function App() {
     const dragId = dragIdRef.current;
     dragIdRef.current = null;
     if (!dragId || dragId === overId) return;
-
-    setTodos((prev) => {
-      const a = prev.findIndex((t) => t.id === dragId);
-      const b = prev.findIndex((t) => t.id === overId);
-      if (a === -1 || b === -1) return prev;
-
-      const copy = [...prev];
-      const [moved] = copy.splice(a, 1);
-      copy.splice(b, 0, moved);
-      return copy;
-    });
+    reorderTodos(dragId, overId);
   }
 
   function exportJSON() {
-    const data = JSON.stringify(todos, null, 2);
+    const payload = exportData();
+    const data = JSON.stringify(payload, null, 2);
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -177,27 +90,10 @@ export default function App() {
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result ?? "[]"));
-        if (!Array.isArray(parsed)) return;
-
-        // sanitizar estructura mínima
-        const cleaned = parsed
-          .filter((x) => x && typeof x === "object")
-          .map((x) => ({
-            id: typeof x.id === "string" ? x.id : uid(),
-            text: typeof x.text === "string" ? x.text : "",
-            completed: Boolean(x.completed),
-            priority:
-              x.priority === "high" || x.priority === "med" || x.priority === "low"
-                ? x.priority
-                : "med",
-            createdAt: typeof x.createdAt === "number" ? x.createdAt : Date.now(),
-            updatedAt: typeof x.updatedAt === "number" ? x.updatedAt : Date.now(),
-          }))
-          .filter((x) => x.text.trim().length > 0);
-
-        setTodos(cleaned);
+        const payload = Array.isArray(parsed) ? { todos: parsed } : parsed;
+        replaceData(payload);
       } catch {
-        // ignorar si no es JSON válido
+        // ignore invalid payload
       }
     };
     reader.readAsText(file);
@@ -210,7 +106,7 @@ export default function App() {
           <div>
             <h1>ToDo Minimalista</h1>
             <p className="sub">
-              {stats.total} total · {stats.active} pendientes · {stats.completed} completadas
+              {stats.total} total | {stats.active} pendientes | {stats.completed} completadas
             </p>
           </div>
 
@@ -240,7 +136,7 @@ export default function App() {
         </header>
 
         <section className="card">
-          <TodoComposer onAdd={addTodo} />
+          <TodoComposer onAdd={addTodo} tags={tags} />
 
           <div className="toolbar">
             <div className="filters">
@@ -259,15 +155,17 @@ export default function App() {
               className="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar…"
+              placeholder="Buscar..."
               aria-label="Buscar tareas"
             />
           </div>
 
+          <TagManager tags={tags} onCreate={createTag} onUpdate={updateTag} onDelete={deleteTag} />
+
           <ul className="list" role="list">
             {visibleTodos.length === 0 ? (
               <li className="empty">
-                <span>No hay tareas aquí.</span>
+                <span>No hay tareas aqui.</span>
               </li>
             ) : (
               visibleTodos.map((t) => (
@@ -275,10 +173,12 @@ export default function App() {
                   key={t.id}
                   todo={t}
                   priorities={PRIORITIES}
+                  tags={tags}
                   onToggle={() => toggleTodo(t.id)}
                   onRemove={() => removeTodo(t.id)}
                   onEdit={(text) => editTodo(t.id, text)}
                   onPriority={(p) => setPriority(t.id, p)}
+                  onTagsChange={(ids) => setTagsForTodo(t.id, ids)}
                   onDragStart={() => onDragStart(t.id)}
                   onDrop={() => onDrop(t.id)}
                 />
@@ -292,7 +192,7 @@ export default function App() {
         </section>
 
         <footer className="bottom">
-          <span>Guardado automático en localStorage.</span>
+          <span>Guardado automatico en localStorage.</span>
         </footer>
       </div>
     </div>
@@ -307,15 +207,17 @@ function FilterButton({ active, onClick, children }) {
   );
 }
 
-function TodoComposer({ onAdd }) {
+function TodoComposer({ onAdd, tags }) {
   const [text, setText] = useState("");
   const [priority, setPriority] = useState("med");
+  const [selectedTags, setSelectedTags] = useState([]);
 
   function submit(e) {
     e.preventDefault();
-    onAdd(text, priority);
+    onAdd(text, priority, selectedTags);
     setText("");
     setPriority("med");
+    setSelectedTags([]);
   }
 
   return (
@@ -324,7 +226,7 @@ function TodoComposer({ onAdd }) {
         className="input"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Nueva tarea…"
+        placeholder="Nueva tarea..."
         aria-label="Nueva tarea"
       />
 
@@ -342,6 +244,10 @@ function TodoComposer({ onAdd }) {
       <button className="btn btn-primary" type="submit">
         Agregar
       </button>
+
+      <div className="tag-picker-row" aria-label="Tags para la nueva tarea">
+        <TagPicker tags={tags} value={selectedTags} onChange={setSelectedTags} />
+      </div>
     </form>
   );
 }
@@ -349,10 +255,12 @@ function TodoComposer({ onAdd }) {
 function TodoItem({
   todo,
   priorities,
+  tags,
   onToggle,
   onRemove,
   onEdit,
   onPriority,
+  onTagsChange,
   onDragStart,
   onDrop,
 }) {
@@ -370,6 +278,7 @@ function TodoItem({
   }
 
   const pri = priorities.find((p) => p.value === todo.priority) ?? priorities[1];
+  const assignedTags = tags.filter((tag) => todo.tags?.includes(tag.id));
 
   return (
     <li
@@ -380,7 +289,7 @@ function TodoItem({
       onDrop={onDrop}
     >
       <button className={`check ${todo.completed ? "check-on" : ""}`} onClick={onToggle} aria-label="Completar">
-        {todo.completed ? "✓" : ""}
+        {todo.completed ? "OK" : ""}
       </button>
 
       <span className={`dot ${pri.dot}`} title={`Prioridad: ${pri.label}`} />
@@ -405,6 +314,16 @@ function TodoItem({
         ) : (
           <span className="text">{todo.text}</span>
         )}
+
+        <div className="tags-inline">
+          {assignedTags.length ? (
+            assignedTags.map((tag) => <TagBadge key={tag.id} tag={tag} />)
+          ) : (
+            <span className="tag-placeholder">Sin tags</span>
+          )}
+        </div>
+
+        <TagPicker tags={tags} value={todo.tags || []} onChange={onTagsChange} dense />
       </div>
 
       <select
@@ -419,8 +338,108 @@ function TodoItem({
       </select>
 
       <button className="icon danger" onClick={onRemove} aria-label="Eliminar">
-        ✕
+        X
       </button>
     </li>
+  );
+}
+
+function TagPicker({ tags, value, onChange, dense = false }) {
+  const selected = new Set(value || []);
+
+  function toggle(id) {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    onChange(Array.from(next));
+  }
+
+  if (!tags.length) {
+    return <span className="tag-placeholder">Crea un tag para empezar</span>;
+  }
+
+  return (
+    <div className={`tag-picker ${dense ? "tag-picker-dense" : ""}`}>
+      {tags.map((tag) => (
+        <label key={tag.id} className={`tag-option ${selected.has(tag.id) ? "tag-option-on" : ""}`}>
+          <input type="checkbox" checked={selected.has(tag.id)} onChange={() => toggle(tag.id)} />
+          <span className="tag-dot" style={{ background: tag.color }} />
+          <span className="tag-label">{tag.label}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function TagBadge({ tag }) {
+  return (
+    <span className="tag-pill" style={{ "--tag-color": tag.color }}>
+      {tag.label}
+    </span>
+  );
+}
+
+function TagManager({ tags, onCreate, onUpdate, onDelete }) {
+  const [label, setLabel] = useState("");
+  const [color, setColor] = useState("#7c5cff");
+
+  function submit(e) {
+    e.preventDefault();
+    onCreate(label, color);
+    setLabel("");
+  }
+
+  return (
+    <div className="tag-manager">
+      <div className="tag-manager-head">
+        <h3>Tags</h3>
+        <p>Crea categorias y asigna un color.</p>
+      </div>
+
+      <form className="tag-form" onSubmit={submit}>
+        <input
+          className="input"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="Nombre del tag"
+          aria-label="Nombre del tag"
+        />
+        <input
+          className="color"
+          type="color"
+          value={color}
+          onChange={(e) => setColor(e.target.value)}
+          aria-label="Color del tag"
+        />
+        <button className="btn btn-primary" type="submit">
+          Agregar tag
+        </button>
+      </form>
+
+      <div className="tag-list">
+        {tags.map((tag) => (
+          <div key={tag.id} className="tag-row">
+            <TagBadge tag={tag} />
+            <input
+              className="tag-name"
+              value={tag.label}
+              onChange={(e) => onUpdate(tag.id, { label: e.target.value })}
+              aria-label={`Renombrar tag ${tag.label}`}
+            />
+            <input
+              className="color"
+              type="color"
+              value={tag.color}
+              onChange={(e) => onUpdate(tag.id, { color: e.target.value })}
+              aria-label={`Color de ${tag.label}`}
+            />
+            <button className="icon danger" type="button" onClick={() => onDelete(tag.id)} aria-label="Eliminar tag">
+              X
+            </button>
+          </div>
+        ))}
+        {tags.length === 0 && <p className="tag-placeholder">Aun no tienes tags creados.</p>}
+      </div>
+    </div>
   );
 }

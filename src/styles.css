@@ -118,9 +118,22 @@ h1{
 .composer{
   display:grid;
   grid-template-columns: 1fr 140px 120px;
+  grid-template-areas:
+    "text priority button"
+    "tags tags tags";
   gap: 10px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--stroke);
+}
+.composer .input{ grid-area: text; }
+.composer .select{ grid-area: priority; }
+.composer .btn-primary{ grid-area: button; }
+.tag-picker-row{
+  grid-area: tags;
+  background: var(--panel2);
+  border: 1px dashed var(--stroke);
+  border-radius: 12px;
+  padding: 8px 10px;
 }
 
 .input, .select, .search, .edit{
@@ -135,6 +148,14 @@ h1{
 .input::placeholder, .search::placeholder, .edit::placeholder{ color: var(--placeholder); }
 
 .select{
+  cursor: pointer;
+}
+.color{
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: var(--panel2);
   cursor: pointer;
 }
 
@@ -224,7 +245,7 @@ h1{
 .item{
   display:grid;
   grid-template-columns: 44px 14px 1fr 110px 42px;
-  align-items:center;
+  align-items:flex-start;
   gap: 10px;
   padding: 10px;
   border-radius: 14px;
@@ -269,6 +290,8 @@ h1{
 
 .content{
   min-width: 0;
+  display: grid;
+  gap: 6px;
 }
 .text{
   display:block;
@@ -318,9 +341,130 @@ h1{
   color: var(--muted);
   font-size: 12px;
 }
+
+.tag-picker{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag-picker-dense{
+  gap: 6px;
+}
+.tag-picker-dense .tag-option{
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.tag-option{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: var(--panel2);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  user-select: none;
+}
+.tag-option input{
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
+.tag-option-on{
+  border-color: var(--primary-strong);
+  background: var(--primary-soft);
+}
+.tag-dot{
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+}
+.tag-label{
+  line-height: 1;
+}
+.tag-pill{
+  display:inline-flex;
+  align-items:center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--panel2);
+  border: 1px solid var(--stroke);
+  box-shadow: inset 0 0 0 6px var(--tag-color, #7c5cff);
+  color: var(--text);
+  font-size: 12px;
+}
+.tags-inline{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag-placeholder{
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tag-manager{
+  border: 1px dashed var(--stroke);
+  border-radius: 14px;
+  padding: 12px;
+  background: var(--panel2);
+  margin-bottom: 12px;
+}
+.tag-manager-head{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tag-manager h3{
+  margin: 0;
+  font-size: 16px;
+}
+.tag-manager p{
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.tag-form{
+  display:grid;
+  grid-template-columns: 1fr 100px 130px;
+  gap: 8px;
+  margin-top: 10px;
+}
+.tag-list{
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.tag-row{
+  display:grid;
+  grid-template-columns: 1fr 1fr 80px 42px;
+  align-items:center;
+  gap: 8px;
+}
+.tag-name{
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  background: var(--field);
+  color: var(--text);
+  padding: 10px 10px;
+}
+
 @media (max-width: 640px){
   .composer{
     grid-template-columns: 1fr;
+    grid-template-areas:
+      "text"
+      "priority"
+      "button"
+      "tags";
   }
   .search{
     max-width: 100%;
@@ -330,5 +474,11 @@ h1{
     grid-template-areas:
       "check dot text del"
       "check dot prio del";
+  }
+  .tag-form{
+    grid-template-columns: 1fr;
+  }
+  .tag-row{
+    grid-template-columns: 1fr;
   }
 }
