@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 const STORAGE_KEY = "todo_minimalista_v1";
+const THEME_KEY = "todo_minimalista_theme_v1";
 
 function uid() {
   return crypto?.randomUUID?.() ?? String(Date.now() + Math.random());
@@ -21,6 +22,15 @@ function saveTodos(todos) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
 }
 
+function loadTheme() {
+  if (typeof window === "undefined") return "dark";
+
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+
+  return window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+}
+
 const PRIORITIES = [
   { value: "high", label: "Alta", dot: "dot-high" },
   { value: "med", label: "Media", dot: "dot-med" },
@@ -29,6 +39,13 @@ const PRIORITIES = [
 
 export default function App() {
   const [todos, setTodos] = useState(() => loadTodos());
+  const [theme, setTheme] = useState(() => {
+    const initial = loadTheme();
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", initial);
+    }
+    return initial;
+  });
   const [filter, setFilter] = useState("all"); // all | active | completed
   const [query, setQuery] = useState("");
 
@@ -38,6 +55,10 @@ export default function App() {
   useEffect(() => {
     saveTodos(todos);
   }, [todos]);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
 
   const stats = useMemo(() => {
     const total = todos.length;
@@ -111,6 +132,10 @@ export default function App() {
 
   function clearCompleted() {
     setTodos((prev) => prev.filter((t) => !t.completed));
+  }
+
+  function toggleTheme() {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   }
 
   // Drag & Drop: reordenar dentro de la lista visible, respetando el orden global
@@ -206,6 +231,10 @@ export default function App() {
 
             <button className="btn btn-danger" onClick={clearCompleted} disabled={stats.completed === 0}>
               Limpiar completadas
+            </button>
+
+            <button className="btn btn-ghost theme-toggle" onClick={toggleTheme} title="Cambiar tema">
+              {theme === "dark" ? "Modo claro" : "Modo oscuro"}
             </button>
           </div>
         </header>
