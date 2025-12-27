@@ -206,7 +206,11 @@ export default function App() {
 
 function FilterButton({ active, onClick, children }) {
   return (
-    <button className={`chip ${active ? "chip-active" : ""}`} onClick={onClick}>
+    <button
+      className={`chip ${active ? "chip-active" : ""}`}
+      onClick={onClick}
+      aria-pressed={active}
+    >
       {children}
     </button>
   );
@@ -293,13 +297,34 @@ function TodoItem({
       onDragOver={(e) => e.preventDefault()}
       onDrop={onDrop}
     >
-      <button className={`check ${todo.completed ? "check-on" : ""}`} onClick={onToggle} aria-label="Completar">
+      <button
+        className={`check ${todo.completed ? "check-on" : ""}`}
+        onClick={onToggle}
+        aria-pressed={todo.completed}
+        aria-label={todo.completed ? "Marcar como pendiente" : "Marcar como completada"}
+      >
         {todo.completed ? "OK" : ""}
       </button>
 
       <span className={`dot ${pri.dot}`} title={`Prioridad: ${pri.label}`} />
 
-      <div className="content" onDoubleClick={() => setEditing(true)}>
+      <div
+        className="content"
+        tabIndex={0}
+        role="button"
+        aria-label="Editar tarea"
+        onDoubleClick={() => setEditing(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setEditing(true);
+          }
+          if (e.key === "Escape" && editing) {
+            setDraft(todo.text);
+            setEditing(false);
+          }
+        }}
+      >
         {editing ? (
           <input
             className="edit"
@@ -342,7 +367,7 @@ function TodoItem({
         <option value="low">Baja</option>
       </select>
 
-      <button className="icon danger" onClick={onRemove} aria-label="Eliminar">
+      <button className="icon danger" onClick={onRemove} aria-label="Eliminar tarea">
         X
       </button>
     </li>

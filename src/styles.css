@@ -2,9 +2,9 @@
   --bg: #0b0c10;
   --panel: rgba(255,255,255,.06);
   --panel2: rgba(255,255,255,.10);
-  --stroke: rgba(255,255,255,.14);
+  --stroke: rgba(255,255,255,.16);
   --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.62);
+  --muted: rgba(255,255,255,.70);
 
   --primary: #7c5cff;
   --primary-soft: rgba(124,92,255,.18);
@@ -18,7 +18,7 @@
   --item: rgba(0,0,0,.16);
   --item-hover: rgba(0,0,0,.22);
   --check: rgba(255,255,255,.06);
-  --placeholder: rgba(255,255,255,.42);
+  --placeholder: rgba(255,255,255,.52);
   --dashed: rgba(255,255,255,.18);
 
   --radius: 16px;
@@ -34,9 +34,9 @@
   --bg: #f5f7fb;
   --panel: rgba(255,255,255,.94);
   --panel2: #ffffff;
-  --stroke: rgba(23,43,77,.14);
+  --stroke: rgba(23,43,77,.18);
   --text: #1c2433;
-  --muted: #5b6475;
+  --muted: #4a5164;
 
   --primary: #3f74ff;
   --primary-soft: rgba(63,116,255,.14);
@@ -50,7 +50,7 @@
   --item: rgba(255,255,255,.94);
   --item-hover: #ffffff;
   --check: rgba(63,116,255,.10);
-  --placeholder: rgba(27,36,51,.55);
+  --placeholder: rgba(27,36,51,.62);
   --dashed: rgba(23,43,77,.22);
 
   --shadow: 0 18px 60px rgba(12,30,66,.18);
@@ -544,12 +544,16 @@ h1{
 }
 
 button:focus-visible,
-.input:focus-visible,
-.select:focus-visible,
-.search:focus-visible,
-.edit:focus-visible,
-.icon:focus-visible,
-.color:focus-visible{
-  outline: 2px solid color-mix(in srgb, var(--primary) 32%, var(--stroke));
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline: 2px solid color-mix(in srgb, var(--primary) 50%, var(--stroke));
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+.focus-ring{
+  outline: 2px solid color-mix(in srgb, var(--primary) 50%, var(--stroke));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
 }

@@ -45,11 +45,6 @@ npm run dev      # abre en http://localhost:5173
 - Arrastra tareas para reordenar; exporta/importa con los botones superiores; "Limpiar completadas" borra las ya terminadas.
 
 ## Roadmap (en curso)
-### Accesibilidad (A11y)
-- Navegacion completa por teclado (Tab, Enter, Escape) con estados claros usando :focus-visible.
-- Ajuste de contraste para cumplir WCAG AA.
-- Etiquetado semantico y `aria-label` descriptivos en controles.
-
 ### Microinteracciones y animaciones
 - Fade + slide en entrada/salida de tareas.
 - Transicion visual al marcar una tarea como completada.
