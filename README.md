@@ -64,7 +64,6 @@ npm run dev      # abre en http://localhost:5173
 - Porcentaje de tareas completadas y contador por prioridad.
 - Metricas simples de productividad diaria.
 
-### Organizacion y escalabilidad
 
 ### Persistencia y mantenimiento
 - Versionado del schema en `localStorage` con migraciones automaticas.
